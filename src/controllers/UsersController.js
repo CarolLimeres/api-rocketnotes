@@ -1,4 +1,5 @@
 // esse arquivo de controller vai lidar com o processamento de informações
+// cuida da requisição e resposta
 
 // o hash é a função que vai gerar a criptografia:
 const { hash, compare } = require("bcryptjs");
@@ -6,8 +7,10 @@ const { hash, compare } = require("bcryptjs");
 // importar arquivo AppError.js p usar aqui:
 const AppError = require("../utils/AppError");
 
+const UserRepository = require("../repositories/UserRepository");
 // importar a conexão com o banco de dados:
 const sqliteConnection = require("../database/sqlite");
+const UserCreateService = require("../services/UserCreateService");
 
 // vou usar classe aqui pq uma classe permite que eu tenha várias funções
 class UsersController {
@@ -24,31 +27,10 @@ class UsersController {
     // recuperar valores enviados através do corpo da requisição:
     const { name, email, password } = request.body;
 
-    // preciso do await aqui e do async em cima pq vou conectar com banco de dados
-    // requisições assíncronas
-    const database = await sqliteConnection();
+    const userRepository = new UserRepository();
+    const userCreateService = new UserCreateService(userRepository);
 
-    // verificar se o user ja existe:
-    // get pra buscar por informações:
-    const checkUserExists = await database.get(
-      "SELECT * FROM users WHERE email = (?)",
-      [email]
-    );
-
-    if (checkUserExists) {
-      throw new AppError("Este e-mail já está em uso.");
-    }
-
-    // a função de hash precisa de 2 parâmetros:
-    // primeiro é a senha e o segundo é o fator de complexidade do hash
-    // onde tem uma promisse eu preciso colocar um await, nesse caso p esperar terminar de gerar a criptografia p eu poder usa-la
-    const hashedPassword = await hash(password, 8);
-
-    // criar user:
-    await database.run(
-      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, hashedPassword]
-    );
+    await userCreateService.execute({ name, email, password });
 
     // status de criado:
     return response.status(201).json();
