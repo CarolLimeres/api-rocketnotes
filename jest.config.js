@@ -8,6 +8,5 @@ module.exports = {
   // <rootDir>/src/ é p ignorar os node_modules
   // procura na pasta src dentro de qualquer pasta, um arquivo de qualquer nome q tenha .spec.js
 
-  // COLOCAR DEPOIS DNV "<rootDir>/src/**/*.spec.js"
-  testMatch: ["<rootDir>/**/*.spec.js"],
+  testMatch: ["<rootDir>/src/**/*.spec.js"],
 };
